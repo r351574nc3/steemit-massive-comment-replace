@@ -1,0 +1,234 @@
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+            <style>
+    body {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    }
+
+    h3 {
+    margin-top: 2rem;
+    }
+
+    .row {
+    margin-bottom: 1rem;
+    }
+    .row .row {
+    margin-top: 1rem;
+    margin-bottom: 0;
+    }
+    [class*="col-"] {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+
+    }
+
+    hr {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    }
+
+    img.avatar {
+        display: block!important;
+        border-radius: 50%;
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: 50% 50%;
+        border: 1px solid #e9e7e7;
+    }
+
+    .modal-body a.success {
+        color: green;
+    }
+
+    .modal-body a.failure {
+        color: red;
+    }
+
+            </style>
+        </head>
+        <body>
+            <div id="app">
+                <div class="container">
+                        <h1>Massive Comment Replace</h1>
+                
+                        <div class="row">
+                            <div>
+                                <h3>Login & logout</h3>
+                                <b><img class="avatar" :src="profileImage" width="32" height="32" v-if="user.name">{{ user.name }}</b>
+                                <button  class="ml-2 btn btn-secondary" v-if="user.name">
+                                    Logout
+                                </button>
+                                <a class="btn btn-primary" :href="loginUrl" v-else>Log In</a>
+                            </div>
+                        </div>
+                        <form>
+                            <div class="form-group row">
+                                <div class="col-5">
+                                    <label for="body">Replacement Body</label>
+                                    <textarea class="form-control" id="body" rows="10"></textarea>                                
+                                </div>
+                                <div class="col-4">
+                                    <label for="newPermlink">Add Permlink</label>
+                                    <div class="input-group mb-3">
+                                        <input  type="text" class="form-control" id="newPermlink" aria-describedby="New Permlink" placeholder="https://steemit.com/@blah/blahblahblah-moar-blah" />
+                                        <div>
+                                            <button class="input-group-append btn btn-primary form-control" id="addPermButton">Add</button>
+                                        </div>
+                                    </div>
+                                    <label for="permlinks">Permlinks</label>
+                                    <select multiple class="form-control" id="permlinks" size="7">
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <button id="post" type="submit" class="btn btn-primary">Post</button>
+                            </div>
+                        </form>
+                
+                        <div class="row">
+                            <div class="modal fade" id="progressModal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                            <div class="modal-header">
+                                                    <h5 class="modal-title" id="exampleModalLongTitle">Completed Replacement</h5>
+                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                      <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                  </div>
+                                            <div class="modal-body">
+                                                
+                                            </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                
+                </div>
+            </div>
+        </body>
+
+        <script src="https://steemit.github.io/example-steemconnect-angular/sc2.min.js"></script>
+        <script src="https://cdn.steemjs.com/lib/latest/steem.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/vue@2.5.13/dist/vue.js"></script>
+        <script>
+    function querystring(variable) {
+        var query = window.location.search.substring(1);
+        var vars = query.split('&');
+        for (var i = 0; i < vars.length; i++) {
+            var pair = vars[i].split('=');
+            if (decodeURIComponent(pair[0]) == variable) {
+                return decodeURIComponent(pair[1]);
+            }
+        }
+        console.log('Query variable %s not found', variable);
+    }
+
+    let access_token = querystring('access_token')
+
+    var sdk = sc2.init({
+        app: 'sylveon',
+        accessToken: access_token,
+        callbackURL: 'https://r351574nc3.github.io/steemit-massive-comment-replace/',
+        scope: ['comment']
+    });
+
+    let loginUrl = sc2.getLoginURL();
+
+    console.log(loginUrl)
+
+    var app = new Vue({
+        el: '#app',
+        data: {
+            profileImage: "",
+            loginUrl: loginUrl,
+            user: {},
+            message: 'Hello Vue!'
+        },
+        methods: {
+            keypress: function(event) {
+                console.log(event)
+            }      
+        }
+    })
+        
+    sc2.me(function(err, user) {
+        if (user) {
+            let profileImageUrl = user ? `https://steemitimages.com/u/${user.name}/avatar` : ""
+            app.profileImage = profileImageUrl;
+            app.user = user;
+        }
+    })
+
+    function addPermlink(e) {
+        e.preventDefault();
+        let permlinks = $("#permlinks").html()
+        let url_to_add = $("#newPermlink").val();
+        if (!permlinks.includes(url_to_add)) {
+            $("#permlinks").append("<option>" + url_to_add + "</option>")
+        }
+        $("#newPermlink").val("");
+    }
+
+    $('#newPermlink').keypress(function(e) {
+        if (e.keyCode == 13) {
+            e.preventDefault();
+            addPermlink(e)
+            e.preventDefault();
+        }
+    });
+
+    $('#addPermButton').click(addPermlink)
+
+    $("#post").click(function(e) {
+        e.preventDefault();
+
+        $("#progressModal").modal('toggle')
+
+        $("#permlinks > option").each((i, el) => {
+            let permlink = el.text.split("/").pop();
+            let author = app.user.name;
+            steem.api.getContentAsync(author, permlink)
+                .then((content) => {
+                    sc2.comment(content.parent_author, 
+                                content.parent_permlink, 
+                                author, permlink, 
+                                "", $("#body").val(), {},
+                                function(err, results) {
+                                    let clname = "success"
+                                    if (err) {
+                                        clname = "failure"
+                                    }
+                                    $(".modal-body").append("<a class=\"" + clname + "\" href=\"" + permlink + "\">" + permlink + "</a><br/>")
+                                }
+                    );
+                })
+        })
+    })
+
+
+    function query_string(b) {
+        var c = typeof b === "undefined";
+        if (a !== h && c) return a;
+        for (var d = {}, b = b || k[B][vb], e = b[p]("?"), f = b[p]("#"), b = (f === -1 ? b[Ya](e + 1) : [b[Ya](e + 1, f - e - 1), "&", b[Ya](f + 1)][K](""))[z]("&"), e = i.dd ? ia : unescape, f = 0, g = b[w]; f < g; ++f) {
+            var l = b[f][p]("=");
+            if (l !== -1) {
+                var q = b[f][I](0, l),
+                    l = b[f][I](l + 1),
+                    l = l[Ca](/\+/g, " ");
+                try {
+                    d[q] = e(l)
+                } catch (A) {}
+            }
+        }
+        c && (a = d);
+        return d
+    }
+
+    </script>
+    </html>
